@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora ROI Software a Medida | NaimiTech</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #0f4c81;
+            --secondary-blue: #3a6ea5;
+            --light-blue: #c3d7e5;
+            --dark-gray: #333333;
+            --light-gray: #f5f5f5;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-gray);
+            background-color: #f9fafb;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            padding: 30px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-blue);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--light-blue);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(58, 110, 165, 0.2);
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .tab.active {
+            background-color: white;
+            color: var(--primary-blue);
+            border-top: 3px solid var(--primary-blue);
+            border-left: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+            border-bottom: none;
+        }
+        
+        .tab:not(.active) {
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #e2e8f0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .result-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+        
+        .icon-circle {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .step-number {
+            background-color: var(--primary-blue);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .sector-card {
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .sector-card.selected {
+            border-color: var(--primary-blue);
+            background-color: var(--light-blue);
+        }
+        
+        .sector-card:hover:not(.selected) {
+            border-color: #e2e8f0;
+            background-color: #f8fafc;
+        }
+        
+        #contactForm {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        
+        #contactForm.show {
+            max-height: 500px;
+        }
+        
+        .footer {
+            background-color: var(--dark-gray);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Chart container styling */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        /* Result cards styling */
+        .result-card {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 15px;
+        }
+        
+        /* Progress styling */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+            width: 0;
+            transition: width 1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header class="header">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Calculadora de ROI</h1>
+                    <p class="text-white/80">Descubre el retorno de inversión al implementar software a medida en tu empresa</p>
+                </div>
+                <div class="hidden md:block">
+                    <img src="https://naimitech.com/wp-content/uploads/2025/02/naimitech-logo-blanco.png" alt="NaimiTech Logo" class="h-14">
+                </div>
+            </div>
+        </header>
+        
+        <div class="card">
+            <div class="flex items-center mb-6">
+                <div class="step-number">1</div>
+                <h2 class="text-xl font-bold">Selecciona tu sector</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="sector-card card p-4 flex flex-col items-center text-center" data-sector="logistica">
+                    <div class="icon-circle mb-3">
+                        <i class="fas fa-warehouse text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Logística</h3>
+                    <p class="text-gray-600 text-sm">Gestión de almacenes, inventario, picking, packing...</p>
+                </div>
+                
+                <div class="sector-card card p-4 flex flex-col items-center text-center" data-sector="transporte">
+                    <div class="icon-circle mb-3">
+                        <i class="fas fa-truck text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Transporte</h3>
+                    <p class="text-gray-600 text-sm">Gestión de flotas, optimización de rutas, seguimiento...</p>
+                </div>
+                
+                <div class="sector-card card p-4 flex flex-col items-center text-center" data-sector="industria">
+                    <div class="icon-circle mb-3">
+                        <i class="fas fa-industry text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Industria</h3>
+                    <p class="text-gray-600 text-sm">Automatización, control de producción, mantenimiento...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="dataInputSection" class="card hidden">
+            <div class="flex items-center mb-6">
+                <div class="step-number">2</div>
+                <h2 class="text-xl font-bold">Introduce tus datos</h2>
+            </div>
+            
+            <div id="logisticaForm" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 form-grid">
+                    <div>
+                        <label class="font-semibold">Número de empleados</label>
+                        <input type="number" id="logistica_empleados" class="form-control" placeholder="Ej. 15">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Horas semanales dedicadas a gestión manual</label>
+                        <input type="number" id="logistica_horas" class="form-control" placeholder="Horas por semana">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Coste medio por empleado (€/hora)</label>
+                        <input type="number" id="logistica_coste_hora" class="form-control" placeholder="Ej. 20">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Errores de inventario mensuales (% estimado)</label>
+                        <input type="number" id="logistica_errores" class="form-control" placeholder="Ej. 8">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Valor medio mensual del inventario (€)</label>
+                        <input type="number" id="logistica_valor_inventario" class="form-control" placeholder="Ej. 250000">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Pedidos mensuales</label>
+                        <input type="number" id="logistica_pedidos" class="form-control" placeholder="Ej. 500">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="transporteForm" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 form-grid">
+                    <div>
+                        <label class="font-semibold">Número de vehículos</label>
+                        <input type="number" id="transporte_vehiculos" class="form-control" placeholder="Ej. 10">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Kilómetros mensuales por vehículo</label>
+                        <input type="number" id="transporte_km" class="form-control" placeholder="Ej. 5000">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Coste por kilómetro (€)</label>
+                        <input type="number" id="transporte_coste_km" class="form-control" placeholder="Ej. 0.35" step="0.01">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Horas semanales en planificación de rutas</label>
+                        <input type="number" id="transporte_horas_planificacion" class="form-control" placeholder="Ej. 15">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Coste medio por empleado (€/hora)</label>
+                        <input type="number" id="transporte_coste_hora" class="form-control" placeholder="Ej. 20">
+                    </div>
+                    <div>
+                        <label class="font-semibold">% estimado de kilómetros en vacío</label>
+                        <input type="number" id="transporte_km_vacio" class="form-control" placeholder="Ej. 25">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="industriaForm" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 form-grid">
+                    <div>
+                        <label class="font-semibold">Número de operarios</label>
+                        <input type="number" id="industria_operarios" class="form-control" placeholder="Ej. 25">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Coste medio por operario (€/hora)</label>
+                        <input type="number" id="industria_coste_hora" class="form-control" placeholder="Ej. 18">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Horas de parada no planificadas al mes</label>
+                        <input type="number" id="industria_paradas" class="form-control" placeholder="Ej. 24">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Coste estimado por hora de parada (€)</label>
+                        <input type="number" id="industria_coste_parada" class="form-control" placeholder="Ej. 500">
+                    </div>
+                    <div>
+                        <label class="font-semibold">% de producto defectuoso</label>
+                        <input type="number" id="industria_defectos" class="form-control" placeholder="Ej. 5" max="100">
+                    </div>
+                    <div>
+                        <label class="font-semibold">Valor de producción mensual (€)</label>
+                        <input type="number" id="industria_valor_produccion" class="form-control" placeholder="Ej. 350000">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <button id="calculateBtn" class="btn-primary">Calcular ROI</button>
+            </div>
+        </div>
+        
+        <div id="resultsSection" class="hidden">
+            <div class="card">
+                <div class="flex items-center mb-6">
+                    <div class="step-number">3</div>
+                    <h2 class="text-xl font-bold">Resultados de tu inversión</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="card result-card">
+                        <h3 class="text-gray-600 mb-2">Ahorro mensual estimado</h3>
+                        <div id="ahorroMensual" class="result-value">0 €</div>
+                    </div>
+                    
+                    <div class="card result-card">
+                        <h3 class="text-gray-600 mb-2">Retorno de inversión</h3>
+                        <div id="retornoInversion" class="result-value">0 meses</div>
+                    </div>
+                    
+                    <div class="card result-card">
+                        <h3 class="text-gray-600 mb-2">ROI a 5 años</h3>
+                        <div id="roiPorcentaje" class="result-value">0%</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="roiChart"></canvas>
+                </div>
+                
+                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-blue-800 font-medium">Inversión estimada en software a medida</h3>
+                            <div class="mt-2 text-blue-700">
+                                <p id="inversionEstimada" class="font-medium">15.000 € - 25.000 €</p>
+                                <p class="text-sm mt-1">Esta estimación es orientativa y varía según la complejidad de tu proyecto</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-100 p-6 rounded-lg mt-8">
+                    <h3 class="font-bold text-lg mb-4">¿Quieres un análisis más detallado y personalizado?</h3>
+                    <button id="solicitarAnalisisBtn" class="btn-primary">Solicitar análisis gratuito</button>
+                    
+                    <div id="contactForm" class="mt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="font-semibold">Nombre</label>
+                                <input type="text" id="nombre" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div>
+                                <label class="font-semibold">Empresa</label>
+                                <input type="text" id="empresa" class="form-control" placeholder="Nombre de tu empresa">
+                            </div>
+                            <div>
+                                <label class="font-semibold">Email</label>
+                                <input type="email" id="email" class="form-control" placeholder="tu@email.com">
+                            </div>
+                            <div>
+                                <label class="font-semibold">Teléfono</label>
+                                <input type="tel" id="telefono" class="form-control" placeholder="Tu teléfono">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="font-semibold">Comentarios adicionales</label>
+                            <textarea id="comentarios" class="form-control" rows="3" placeholder="Cuéntanos más sobre tu proyecto o necesidades específicas"></textarea>
+                        </div>
+                        <button id="enviarContactoBtn" class="btn-primary">Enviar solicitud</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-8">
+                <h2 class="text-xl font-bold mb-6">Beneficios adicionales del software a medida</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex">
+                        <div class="icon-circle flex-shrink-0">
+                            <i class="fas fa-chart-line text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mb-2">Mayor escalabilidad</h3>
+                            <p class="text-gray-600">El software crece junto con tu empresa, adaptándose a nuevas necesidades sin requerir cambios completos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex">
+                        <div class="icon-circle flex-shrink-0">
+                            <i class="fas fa-cogs text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mb-2">Perfecta adaptación</h3>
+                            <p class="text-gray-600">Diseñado exactamente para tus procesos, a diferencia del software genérico que requiere adaptar tu empresa.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex">
+                        <div class="icon-circle flex-shrink-0">
+                            <i class="fas fa-shield-alt text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mb-2">Mayor seguridad</h3>
+                            <p class="text-gray-600">Control total sobre la seguridad de tus datos y menos vulnerabilidades que en soluciones genéricas.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex">
+                        <div class="icon-circle flex-shrink-0">
+                            <i class="fas fa-puzzle-piece text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mb-2">Integración perfecta</h3>
+                            <p class="text-gray-600">Se integra sin problemas con tus sistemas actuales, evitando duplicidad de datos y procesos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="thankYouSection" class="card hidden">
+            <div class="text-center py-8">
+                <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-check text-green-500 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">¡Gracias por tu solicitud!</h2>
+                <p class="text-gray-600 mb-6">Nos pondremos en contacto contigo en las próximas 24 horas para agendar tu análisis personalizado.</p>
+                <button id="volverCalculadoraBtn" class="btn-secondary">Volver a la calculadora</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-lg font-bold mb-4">NaimiTech</h3>
+                    <p class="text-gray-400 max-w-md">Desarrollamos software a medida para empresas de logística, transporte e industria, ayudándolas a optimizar procesos y reducir costes.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contacto</h3>
+                    <p class="text-gray-400"><i class="fas fa-envelope mr-2"></i> naimitech.es@gmail.com</p>
+                    <p class="text-gray-400 mt-2"><i class="fas fa-phone mr-2"></i> +34 655 138 372</p>
+                    <div class="mt-4 flex space-x-3">
+                        <a href="https://www.linkedin.com/in/naimitech/" class="text-white hover:text-blue-300" target="_blank">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                        <a href="https://naimitech.com" class="text-white hover:text-blue-300" target="_blank">
+                            <i class="fas fa-globe text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>© 2025 NaimiTech. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script>
+        // Variables globales
+        let sectorSeleccionado = '';
+        let chart = null;
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners para selección de sector
+            const sectorCards = document.querySelectorAll('.sector-card');
+            sectorCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    selectSector(this.getAttribute('data-sector'));
+                });
+            });
+            
+            // Event listener para cálculo
+            document.getElementById('calculateBtn').addEventListener('click', calculateROI);
+            
+            // Event listener para mostrar formulario de contacto
+            document.getElementById('solicitarAnalisisBtn').addEventListener('click', function() {
+                document.getElementById('contactForm').classList.add('show');
+            });
+            
+            // Event listener para enviar contacto
+            document.getElementById('enviarContactoBtn').addEventListener('click', function() {
+                const nombre = document.getElementById('nombre').value;
+                const email = document.getElementById('email').value;
+                
+                if (nombre && email) {
+                    document.getElementById('resultsSection').classList.add('hidden');
+                    document.getElementById('thankYouSection').classList.remove('hidden');
+                } else {
+                    alert('Por favor, completa al menos tu nombre y email.');
+                }
+            });
+            
+            // Event listener para volver a la calculadora
+            document.getElementById('volverCalculadoraBtn').addEventListener('click', function() {
+                document.getElementById('thankYouSection').classList.add('hidden');
+                document.getElementById('resultsSection').classList.remove('hidden');
+            });
+        });
+        
+        // Función para seleccionar sector
+        function selectSector(sector) {
+            sectorSeleccionado = sector;
+            
+            // Actualizar UI de selección
+            const sectorCards = document.querySelectorAll('.sector-card');
+            sectorCards.forEach(card => {
+                card.classList.remove('selected');
+                if (card.getAttribute('data-sector') === sector) {
+                    card.classList.add('selected');
+                }
+            });
+            
+            // Mostrar sección de datos y formulario correspondiente
+            document.getElementById('dataInputSection').classList.remove('hidden');
+            
+            // Ocultar todos los formularios
+            document.getElementById('logisticaForm').classList.add('hidden');
+            document.getElementById('transporteForm').classList.add('hidden');
+            document.getElementById('industriaForm').classList.add('hidden');
+            
+            // Mostrar el formulario correspondiente
+            document.getElementById(sector + 'Form').classList.remove('hidden');
+            
+            // Ocultar resultados si estaban visibles
+            document.getElementById('resultsSection').classList.add('hidden');
+            
+            // Scroll al formulario
+            document.getElementById('dataInputSection').scrollIntoView({behavior: 'smooth'});
+        }
+        
+        // Función para calcular ROI
+        function calculateROI() {
+            let ahorroMensual = 0;
+            let inversionEstimada = 0;
+            
+            // Cálculos según sector
+            if (sectorSeleccionado === 'logistica') {
+                const empleados = parseFloat(document.getElementById('logistica_empleados').value) || 0;
+                const horas = parseFloat(document.getElementById('logistica_horas').value) || 0;
+                const costeHora = parseFloat(document.getElementById('logistica_coste_hora').value) || 0;
+                const errores = parseFloat(document.getElementById('logistica_errores').value) || 0;
+                const valorInventario = parseFloat(document.getElementById('logistica_valor_inventario').value) || 0;
+                const pedidos = parseFloat(document.getElementById('logistica_pedidos').value) || 0;
+                
+                // Validación básica
+                if (empleados === 0 || horas === 0 || costeHora === 0) {
+                    alert('Por favor, completa al menos los campos de empleados, horas y coste por hora.');
+                    return;
+                }
+                
+                // Cálculos de ahorro
+                const ahorroHoras = (horas * costeHora * 4) * 0.65; // 65% de ahorro en horas manuales
+                const ahorroErrores = (valorInventario * (errores / 100) * 0.7); // 70% reducción en errores
+                const ahorroEficiencia = pedidos * 1.5; // 1.5€ de ahorro por pedido en eficiencia
+                
+                ahorroMensual = ahorroHoras + ahorroErrores + ahorroEficiencia;
+                inversionEstimada = 15000 + (empleados * 800) + (pedidos * 2);
+                
+            } else if (sectorSeleccionado === 'transporte') {
+                const vehiculos = parseFloat(document.getElementById('transporte_vehiculos').value) || 0;
+                const km = parseFloat(document.getElementById('transporte_km').value) || 0;
+                const costeKm = parseFloat(document.getElementById('transporte_coste_km').value) || 0;
+                const horasPlanificacion = parseFloat(document.getElementById('transporte_horas_planificacion').value) || 0;
+                const costeHora = parseFloat(document.getElementById('transporte_coste_hora').value) || 0;
+                const kmVacio = parseFloat(document.getElementById('transporte_km_vacio').value) || 0;
+                
+                // Validación básica
+                if (vehiculos === 0 || km === 0 || costeKm === 0) {
+                    alert('Por favor, completa al menos los campos de vehículos, kilómetros y coste por kilómetro.');
+                    return;
+                }
+                
+                // Cálculos de ahorro
+                const ahorroRutas = (km * vehiculos * costeKm * (kmVacio / 100) * 0.6); // 60% mejora en km en vacío
+                const ahorroTiempo = horasPlanificacion * costeHora * 4 * 0.75; // 75% ahorro en tiempo de planificación
+                const ahorroMantenimiento = vehiculos * 150; // 150€ por vehículo en mantenimiento preventivo
+                
+                ahorroMensual = ahorroRutas + ahorroTiempo + ahorroMantenimiento;
+                inversionEstimada = 18000 + (vehiculos * 1200);
+                
+            } else if (sectorSeleccionado === 'industria') {
+                const operarios = parseFloat(document.getElementById('industria_operarios').value) || 0;
+                const costeHora = parseFloat(document.getElementById('industria_coste_hora').value) || 0;
+                const paradas = parseFloat(document.getElementById('industria_paradas').value) || 0;
+                const costeParada = parseFloat(document.getElementById('industria_coste_parada').value) || 0;
+                const defectos = parseFloat(document.getElementById('industria_defectos').value) || 0;
+                const valorProduccion = parseFloat(document.getElementById('industria_valor_produccion').value) || 0;
+                
+                // Validación básica
+                if (operarios === 0 || costeHora === 0 || paradas === 0 || costeParada === 0) {
+                    alert('Por favor, completa al menos los campos de operarios, coste por hora, paradas y coste por parada.');
+                    return;
+                }
+                
+                // Cálculos de ahorro
+                const ahorroParadas = paradas * costeParada * 0.6; // 60% reducción en paradas
+                const ahorroDefectos = valorProduccion * (defectos / 100) * 0.4; // 40% reducción en defectos
+                const ahorroProductividad = operarios * costeHora * 160 * 0.15; // 15% aumento productividad
+                
+                ahorroMensual = ahorroParadas + ahorroDefectos + ahorroProductividad;
+                inversionEstimada = 25000 + (operarios * 600) + (valorProduccion * 0.01);
+            }
+            
+            // Redondear a dos decimales
+            ahorroMensual = Math.round(ahorroMensual);
+            inversionEstimada = Math.round(inversionEstimada);
+            
+            // Calcular ROI
+            const mesesRecuperacion = Math.ceil(inversionEstimada / ahorroMensual);
+            const roi5Years = ((ahorroMensual * 60 - inversionEstimada) / inversionEstimada) * 100;
+            
+            // Actualizar UI con resultados
+            document.getElementById('ahorroMensual').textContent = new Intl.NumberFormat('es-ES').format(ahorroMensual) + ' €';
+            document.getElementById('retornoInversion').textContent = mesesRecuperacion + ' meses';
+            document.getElementById('roiPorcentaje').textContent = Math.round(roi5Years) + '%';
+            
+            // Mostrar inversión estimada como rango
+            const inversionMin = Math.round(inversionEstimada * 0.8);
+            const inversionMax = Math.round(inversionEstimada * 1.2);
+            document.getElementById('inversionEstimada').textContent = 
+                new Intl.NumberFormat('es-ES').format(inversionMin) + ' € - ' + 
+                new Intl.NumberFormat('es-ES').format(inversionMax) + ' €';
+            
+            // Mostrar gráfico
+            createROIChart(ahorroMensual, inversionEstimada);
+            
+            // Mostrar sección de resultados
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('resultsSection').scrollIntoView({behavior: 'smooth'});
+        }
+        
+        // Función para crear gráfico
+        function createROIChart(ahorroMensual, inversionEstimada) {
+            // Si ya existe un gráfico, destruirlo
+            if (chart) {
+                chart.destroy();
+            }
+            
+            const ctx = document.getElementById('roiChart').getContext('2d');
+            
+            // Calcular datos para el gráfico
+            const labels = ['Inversión inicial'];
+            const beneficiosAcumulados = [0];
+            const inversionData = [inversionEstimada];
+            
+            // Proyección a 5 años
+            for (let i = 1; i <= 5; i++) {
+                labels.push('Año ' + i);
+                beneficiosAcumulados.push(ahorroMensual * i * 12);
+                inversionData.push(null);
+            }
+            
+            // Crear gráfico
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Inversión inicial',
+                            data: inversionData,
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Beneficios acumulados',
+                            data: beneficiosAcumulados,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Euros (€)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Proyección ROI a 5 años'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('es-ES').format(context.parsed.y) + ' €';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
